@@ -8,14 +8,14 @@
 graph TD
     subgraph 前端
         A[前端/前端應用] -->|HTTP/HTTPS| B[Vue 3 應用程式]
-        B -->|HTTP/HTTPS 請求: fetchForecast 通過 axios.get 發送 /api/forecast| C[Laravel API 閘道]
-        C -->|HTTP/HTTPS 回應: response()->json($forecastData) 返回 {"dish_id": 1, "predictions": [...]}| B
+        B -->|請求| C[Laravel API 閘道]
+        C -->|回應| B
     end
 
     subgraph 後端
         C[Laravel API 閘道] -->|JWT 認證| D[Redis]
-        C -->|HTTP/HTTPS 轉發至 FastAPI| E[FastAPI]
-        E -->|HTTP/HTTPS 回應預測數據| C
+        C -->|轉發| E[FastAPI]
+        E -->|回應| C
     end
 
     subgraph 中間層
@@ -119,7 +119,7 @@ stock-ai-engine/
 
 ## 關鍵代碼範例
 
-以下為專案中幾個核心檔案的代碼片段，包含詳細的正體中文註解，展示 AI 預測數據如何從 FastAPI 傳回前端。
+以下為專案中幾個核心檔案的代碼片段，包含詳細的正體中文註解，以展示主要功能邏輯。
 
 ### 1. Laravel 預測控制器 (`laravel/app/Http/Controllers/ForecastController.php`)
 
@@ -147,7 +147,7 @@ class ForecastController extends Controller
         
         // 檢查 Redis 快取中是否已有預測結果
         if (Cache::has($cacheKey)) {
-            return response()->json(Cache::get($cacheKey)); // 從快取返回數據
+            return response()->json(Cache::get($cacheKey));
         }
 
         try {
@@ -158,13 +158,12 @@ class ForecastController extends Controller
 
             // 檢查 FastAPI 回應是否成功
             if ($response->successful()) {
-                $forecastData = $response->json(); // 接收 FastAPI 的 JSON 回應
+                $forecastData = $response->json();
                 
                 // 將預測結果存入 Redis 快取，設定 1 小時過期
                 Cache::put($cacheKey, $forecastData, now()->addHour());
 
-                // 將 FastAPI 的預測數據返回給前端
-                return response()->json($forecastData); // 關鍵：將數據傳回 Vue 前端
+                return response()->json($forecastData);
             }
 
             // 若 FastAPI 回應失敗，返回錯誤訊息
@@ -178,7 +177,7 @@ class ForecastController extends Controller
 }
 ```
 
-**說明**：`return response()->json($forecastData)` 是將 FastAPI 返回的預測數據（例如 `{"dish_id": 1, "predictions": [...]}`）直接傳回前端的關鍵步驟。
+**說明**：此控制器負責處理前端的預測請求，檢查 Redis 快取，若無快取則向 FastAPI 服務請求預測數據，並將結果快取 1 小時以提升效能。
 
 ### 2. FastAPI 主應用 (`fastapi/app/main.py`)
 
@@ -238,18 +237,18 @@ def get_forecast(dish_id: int, db: Session = Depends(get_db)):
         # 執行預測模型
         forecast_result = run_prediction_model(historical_data)
 
-        # 將預測數據返回給 Laravel API 閘道
+        # 返回預測結果
         return {
             "dish_id": dish_id,
             "predictions": forecast_result
-        } # 關鍵：返回 JSON 數據給 Laravel
+        }
 
     except Exception as e:
         # 處理異常，返回錯誤訊息
         raise HTTPException(status_code=500, detail=f"預測時發生錯誤: {str(e)}")
 ```
 
-**說明**：`return {"dish_id": dish_id, "predictions": forecast_result}` 生成 AI 預測數據（例如 `{"dish_id": 1, "predictions": [{"date": "2023-01-04", "forecast": 18}, ...]}`），並傳回 Laravel。
+**說明**：此檔案定義 FastAPI 的預測端點，模擬從資料庫取得歷史數據並執行預測，預留 Prophet/LightGBM 模型的整合空間，目前為占位邏輯。
 
 ### 3. Vue 儀表板頁面 (`vue/src/views/DashboardPage.vue`)
 
@@ -265,13 +264,7 @@ let myChart = null;
 
 // 取得並繪製預測數據
 const fetchAndDrawForecast = async () => {
-  try {
-    await forecastStore.fetchForecast(1); // 向 Laravel API 請求菜品 ID 為 1 的預測
-    console.log('接收到的預測數據:', forecastStore.forecastData); // 調試：查看返回數據
-  } catch (error) {
-    console.error('獲取預測數據失敗:', error);
-    forecastStore.error = error.response?.data?.error || '未知錯誤';
-  }
+  await forecastStore.fetchForecast(1); // 模擬取得菜品 ID 為 1 的預測
 };
 
 // 繪製 ECharts 圖表
@@ -281,9 +274,9 @@ const drawChart = () => {
   }
 
   if (myChart && forecastStore.forecastData) {
-    const predictions = forecastStore.forecastData.predictions; // 提取 FastAPI 返回的 predictions
-    const dates = predictions.map(item => item.date); // 從 predictions 提取日期
-    const forecasts = predictions.map(item => item.forecast); // 從 predictions 提取預測值
+    const predictions = forecastStore.forecastData.predictions;
+    const dates = predictions.map(item => item.date); // 提取日期
+    const forecasts = predictions.map(item => item.forecast); // 提取預測值
 
     // 設定 ECharts 圖表選項
     const option = {
@@ -293,7 +286,9 @@ const drawChart = () => {
       },
       tooltip: {
         trigger: 'axis',
-        axisPointer: { type: 'shadow' }
+        axisPointer: {
+          type: 'shadow'
+        }
       },
       xAxis: {
         type: 'category',
@@ -313,7 +308,7 @@ const drawChart = () => {
         },
       ],
     };
-    myChart.setOption(option); // 渲染圖表，顯示 FastAPI 的預測數據
+    myChart.setOption(option); // 渲染圖表
   }
 };
 
@@ -327,7 +322,7 @@ onMounted(() => {
 // 監聽預測數據變化，更新圖表
 watch(() => forecastStore.forecastData, (newVal) => {
   if (newVal) {
-    drawChart(); // 當接收到新數據時更新圖表
+    drawChart();
   }
 });
 </script>
@@ -360,49 +355,7 @@ watch(() => forecastStore.forecastData, (newVal) => {
 </template>
 ```
 
-**說明**：`forecastStore.forecastData.predictions` 直接使用 FastAPI 返回的 `predictions` 數據，通過 `drawChart` 渲染圖表，證明數據已成功傳回並顯示。
-
-### 4. Pinia 預測狀態管理 (`vue/src/stores/forecast.js`)
-
-```javascript
-import { defineStore } from 'pinia';
-import axios from 'axios';
-
-export const useForecastStore = defineStore('forecast', {
-  state: () => ({
-    forecastData: null, // 儲存從 FastAPI 傳來的預測數據
-    loading: false,
-    error: null,
-  }),
-
-  actions: {
-    async fetchForecast(dishId) {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        // 向 Laravel API 發送請求，取得預測數據
-        const response = await axios.get(`/api/forecast?dish_id=${dishId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`, // 假設使用 JWT 認證
-          },
-        });
-
-        // 儲存 FastAPI 傳來的預測數據
-        this.forecastData = response.data; // 關鍵：接收並儲存返回的 JSON 數據
-        console.log('從 Laravel 接收的數據:', response.data); // 調試：查看返回數據
-      } catch (error) {
-        this.error = error.response?.data?.error || '未知錯誤';
-        console.error('請求錯誤:', error);
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
-});
-```
-
-**說明**：`this.forecastData = response.data` 將 Laravel 返回的 JSON（即 FastAPI 的預測數據）儲存，供 `DashboardPage.vue` 使用。`console.log` 用於調試，確認數據傳輸。
+**說明**：此 Vue 組件使用 Pinia 管理預測狀態，透過 ECharts 繪製柱狀圖展示預測結果，並支援動態數據更新與載入狀態顯示。
 
 ## 從 FastAPI 返回前端的數據流
 
@@ -420,11 +373,6 @@ export const useForecastStore = defineStore('forecast', {
 4. **前端接收與顯示**：
    - `forecast.js` 的 `fetchForecast` 將回應數據賦值給 `forecastData`。
    - `DashboardPage.vue` 的 `watch` 監聽 `forecastData` 變化，提取 `predictions` 渲染 ECharts 圖表。
-
-## 調試建議
-- 在 `forecast.js` 中使用 `console.log` 檢查 `response.data`，確認 FastAPI 的預測數據是否正確傳回。
-- 確保 `vite.config.js` 配置代理，將 `/api/forecast` 轉發至 `http://laravel_app:8000`。
-- 使用瀏覽器開發者工具（Network 標籤）監控請求回應，驗證數據流。
 
 ## 環境需求
 
