@@ -1,0 +1,9 @@
+# Logs and other temporary files
+/storage/*.key
+/vendor
+/node_modules
+/.env
+/build
+/.idea
+.vscode
+.DS_Store
