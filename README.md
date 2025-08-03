@@ -7,23 +7,32 @@
 ```mermaid
 graph TD
     subgraph 前端
-        A[Vue 3 應用程式] -->|HTTP/S| B[後端 API]
+        A[前端/前端應用] -->|HTTP/HTTPS| B[Vue 3 應用程式]
+        B -->|HTTP/HTTPS| C[Laravel API 閘道]
     end
+
     subgraph 後端
-        B[Laravel API 閘道] -->|JWT 認證| C[MySQL]
-        B -->|HTTP/S| D[FastAPI AI 服務]
-        B -->|快取| E[Redis]
+        C[Laravel API 閘道] -->|JWT 認證| D[Redis]
+        C -->|HTTP/HTTPS| E[FastAPI]
     end
+
+    subgraph 中間層
+        D[Redis] -->|快取| C
+        E[FastAPI] -->|SQLAlchemy| F[MySQL]
+        E -->|Prophet/LightGBM| G[預測模型]
+    end
+
     subgraph 資料庫
-        C[MySQL]
+        F[MySQL]
     end
+
     subgraph AI/ML
-        D[FastAPI] -->|SQLAlchemy| C
-        D -->|Prophet/LightGBM| F[預測模型]
+        G[預測模型] -->|AI/ML 預測模型| H[AI/ML 預測模型]
     end
 
     style 前端 fill:#e0f7fa,stroke:#00bcd4,stroke-width:2px
     style 後端 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style 中間層 fill:#ffe0b2,stroke:#ff9800,stroke-width:2px
     style 資料庫 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
     style AI/ML fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
 ```
