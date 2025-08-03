@@ -18,12 +18,8 @@ graph TD
 
     subgraph 中間層
         D[Redis] -->|快取| C
-        E[FastAPI] -->|SQLAlchemy| F[MySQL]
+        E[FastAPI] -->|SQLAlchemy| F[資料庫 (MySQL)]
         E -->|Prophet/LightGBM| G[預測模型]
-    end
-
-    subgraph 資料庫
-        F[MySQL]
     end
 
     subgraph AI/ML
@@ -33,7 +29,6 @@ graph TD
     style 前端 fill:#e0f7fa,stroke:#00bcd4,stroke-width:2px
     style 後端 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style 中間層 fill:#ffe0b2,stroke:#ff9800,stroke-width:2px
-    style 資料庫 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
     style AI/ML fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
 ```
 
