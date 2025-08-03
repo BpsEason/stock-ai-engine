@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+/.env
+/storage/*.key
+/public/hot
+/public/storage
+/Homestead.json
+/Homestead.yaml
+/auth.json
+/composer.lock
+/.php-cs-fixer.cache
+/.vscode
+/web.config
+/artisan
