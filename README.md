@@ -8,12 +8,14 @@
 graph TD
     subgraph 前端
         A[前端/前端應用] -->|HTTP/HTTPS| B[Vue 3 應用程式]
-        B -->|HTTP/HTTPS| C[Laravel API 閘道]
+        B -->|HTTP/HTTPS 請求: fetchForecast 通過 axios.get 發送 /api/forecast| C[Laravel API 閘道]
+        C -->|HTTP/HTTPS 回應: response()->json($forecastData) 返回 {"dish_id": 1, "predictions": [...]}| B
     end
 
     subgraph 後端
         C[Laravel API 閘道] -->|JWT 認證| D[Redis]
-        C -->|HTTP/HTTPS| E[FastAPI]
+        C -->|HTTP/HTTPS 轉發至 FastAPI| E[FastAPI]
+        E -->|HTTP/HTTPS 回應預測數據| C
     end
 
     subgraph 中間層
