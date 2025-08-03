@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Laravel 後端服務
+  laravel_app:
+    build:
+      context: ./laravel
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./laravel:/var/www/html
+    env_file:
+      - ./laravel/.env
+    depends_on:
+      - redis
+      - mysql_db
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # FastAPI 預測微服務
+  fastapi_service:
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    container_name: fastapi_service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./fastapi:/app
+    env_file:
+      - ./fastapi/.env
+    depends_on:
+      - redis
+      - mysql_db
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001
+
+  # Redis 快取與佇列服務
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+
+  # MySQL 資料庫服務
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    env_file:
+      - ./laravel/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    
+volumes:
+  mysql_data:

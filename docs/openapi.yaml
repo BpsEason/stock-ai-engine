@@ -1,0 +1,88 @@
+openapi: 3.0.0
+info:
+  title: iCHEF Stock AI Engine API
+  description: API for the stock prediction and management system.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+    description: Production server
+tags:
+  - name: Authentication
+    description: User login and token management
+  - name: Forecast
+    description: AI-powered stock prediction
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Log in a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: test@example.com
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                  expires_in:
+                    type: integer
+        '401':
+          description: Unauthorized
+  /forecast:
+    get:
+      tags:
+        - Forecast
+      summary: Get AI-powered stock forecast
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dish_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful forecast
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dish_id:
+                    type: integer
+                  predictions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        forecast:
+                          type: number
+        '401':
+          description: Unauthorized
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

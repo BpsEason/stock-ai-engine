@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+scikit-learn
+prophet
+lightgbm
+SQLAlchemy
+pymysql
+python-dotenv
