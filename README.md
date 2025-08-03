@@ -441,6 +441,26 @@ watch(() => forecastStore.forecastData, (newVal) => {
 - **前端代理**：檢查 `vue/vite.config.js` 中的 Vite 代理設定，確保 `/api/forecast` 路由正確指向 Laravel 與 FastAPI 服務。
 - **資料庫遷移**：執行 `php artisan migrate` 前，確保 MySQL 服務正常運行並正確配置 `laravel/.env`。
 
+## 常見問題
+
+- **如何設定環境變數？**
+  - 複製 `laravel/.env.example` 和 `fastapi/.env.example` 為 `.env` 檔案，根據 `docker-compose.yml` 中的服務名稱（如 `mysql_db`、`redis`）編輯數據庫和 Redis 連線資訊。FastAPI 的 `DATABASE_URL` 需設為 `mysql+pymysql://root:secret@mysql_db/stock_ai_engine`。
+
+- **為什麼前端無法獲取預測數據？**
+  - 檢查 `vite.config.js` 中的代理設定，確保 `/api/forecast` 路由正確轉發至 `http://laravel_app:8000`。同時確認 Docker 容器間網絡連通性（例如 `docker-compose ps` 檢查服務狀態）。
+
+- **如何整合 Prophet 模型到 FastAPI？**
+  - 在 `fastapi/app/main.py` 中，安裝 `prophet` 套件（`pip install prophet`），並在 `run_prediction_model` 函數中導入 Prophet 模型，訓練歷史數據並生成預測結果，替換目前的模擬數據。
+
+- **Vue 圖表為什麼不顯示？**
+  - 確保 `echarts` 庫已正確導入（檢查 `package.json` 和 `main.js`），並確認 `forecastStore.forecastData` 包含有效的 `predictions` 數據。若問題持續，檢查瀏覽器控制台的錯誤訊息。
+
+- **Laravel 和 FastAPI 如何實現數據同步？**
+  - Laravel 通過 `Http` 套件向 FastAPI 發送請求，接收回應後存入 Redis 快取。FastAPI 負責處理預測邏輯並返回 JSON，兩者通過 HTTP/HTTPS 通訊實現同步。
+
+- **Docker 容器啟動失敗怎麼辦？**
+  - 查看 `docker-compose logs` 輸出，檢查服務依賴（如 MySQL 未就緒）或環境變數配置錯誤。確保所有服務（如 `mysql_db`）順利啟動後再執行依賴安裝。
+
 ## 下一步
 
 - 在 `fastapi/app/main.py` 中實作 Prophet 或 LightGBM 的實際預測邏輯。
