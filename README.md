@@ -18,7 +18,7 @@ graph TD
 
     subgraph 中間層
         D[Redis] -->|快取| C
-        E[FastAPI] -->|SQLAlchemy| F[資料庫 (MySQL)]
+        E[FastAPI] -->|SQLAlchemy| F[資料庫 MySQL]
         E -->|Prophet/LightGBM| G[預測模型]
     end
 
