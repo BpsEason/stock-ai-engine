@@ -1,6 +1,6 @@
-# 智能庫存預測系統
+# iCHEF 智能庫存預測系統
 
-這是一個基於微服務架構的智能庫存預測專案骨架，專為餐廳庫存管理設計，利用 AI 技術提供精準的銷售預測，優化庫存管理流程。本專案僅包含關鍵代碼，需手動完成依賴安裝與環境配置方可運行。
+這是一個基於微服務架構的智能庫存預測專案骨架，專為餐廳庫存管理設計，利用 AI 技術提供精準的銷售預測，優化庫存管理流程。本專案僅包含關鍵代碼，需手動安裝依賴並完成環境配置方可運行。
 
 ## 專案架構圖
 
@@ -36,6 +36,81 @@ graph TD
 - **現代化前端體驗**：採用 Vue 3、Pinia 與 Vue Router 打造高效能單頁應用，搭配 Tailwind CSS 與 ECharts，提供美觀、響應式的儀表板與數據視覺化。
 - **容器化部署**：透過 Docker Compose 編排 Laravel、FastAPI、MySQL 與 Redis 服務，實現一致的開發與生產環境，簡化部署流程。
 
+## 目錄結構
+
+以下為專案的關鍵目錄結構，包含核心代碼檔案：
+
+```
+stock-ai-engine/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                  # GitHub Actions CI/CD 工作流程
+├── docs/
+│   └── openapi.yaml                # OpenAPI 規範文件
+├── fastapi/
+│   ├── app/
+│   │   ├── db.py                   # FastAPI SQLAlchemy 資料庫連線
+│   │   └── main.py                 # FastAPI 主應用與預測端點
+│   ├── tests/
+│   │   └── test_main.py            # FastAPI 單元測試
+│   ├── .env.example                # FastAPI 環境檔案範例
+│   ├── .gitignore                  # FastAPI Git 忽略設定
+│   ├── Dockerfile                  # FastAPI Docker 配置文件
+│   └── requirements.txt            # FastAPI Python 依賴
+├── laravel/
+│   ├── app/
+│   │   ├── Http/
+│   │   │   └── Controllers/
+│   │   │       ├── AuthController.php     # 認證控制器
+│   │   │       ├── DishController.php     # 菜品 CRUD 控制器
+│   │   │       ├── ForecastController.php # 預測控制器
+│   │   │       └── OrderController.php    # 訂單 CRUD 控制器
+│   │   └── Models/
+│   │       ├── Dish.php                   # 菜品模型
+│   │       ├── Order.php                  # 訂單模型
+│   │       └── User.php                   # 使用者模型
+│   ├── config/
+│   │   ├── auth.php                       # 認證配置
+│   │   └── jwt.php                        # JWT 配置
+│   ├── database/
+│   │   └── migrations/
+│   │       └── 2023_01_01_000000_create_initial_tables.php # 資料庫遷移
+│   ├── routes/
+│   │   └── api.php                        # API 路由
+│   ├── tests/
+│   │   └── Unit/
+│   │       └── ExampleTest.php            # Laravel 單元測試範例
+│   ├── .env.example                       # Laravel 環境檔案範例
+│   ├── .gitignore                         # Laravel Git 忽略設定
+│   ├── composer.json                      # Laravel 依賴配置文件
+│   └── Dockerfile                         # Laravel Docker 配置文件
+├── vue/
+│   ├── public/
+│   │   └── index.html                     # Vue 入口 HTML
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── AppHeader.vue              # 頁頭組件
+│   │   ├── router/
+│   │   │   └── index.js                   # Vue Router 配置
+│   │   ├── stores/
+│   │   │   ├── auth.js                    # Pinia 認證狀態管理
+│   │   │   └── forecast.js                # Pinia 預測狀態管理
+│   │   ├── views/
+│   │   │   ├── DashboardPage.vue           # 儀表板頁面
+│   │   │   └── LoginPage.vue              # 登入頁面
+│   │   ├── App.vue                        # Vue 主組件
+│   │   ├── main.js                        # Vue 應用入口
+│   │   └── style.css                      # Tailwind CSS 樣式
+│   ├── .gitignore                         # Vue Git 忽略設定
+│   ├── package.json                       # Vue 依賴配置文件
+│   └── vite.config.js                     # Vite 配置文件
+├── postman/
+│   └── StockAIEngine.postman_collection.json # Postman 測試集合
+├── .gitignore                             # 專案根目錄 Git 忽略設定
+├── docker-compose.yml                     # Docker Compose 配置文件
+└── README.md                              # 專案說明文件
+```
+
 ## 環境需求
 
 - **Docker** 與 **Docker Compose**
@@ -45,7 +120,7 @@ graph TD
 
 ## 安裝與執行步驟
 
-> **注意**：本專案僅提供關鍵代碼，需手動安裝依賴並完成環境配置。請按照以下步驟操作：
+> **注意**：本專案僅提供關鍵代碼，無法直接運行。需手動安裝依賴並完成環境配置。請按照以下步驟操作：
 
 1. **複製儲存庫**
    ```bash
