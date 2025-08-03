@@ -1,0 +1,62 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mbstring, pdo_mysql, dom, fileinfo
+      - name: Install Dependencies
+        run: |
+          cd laravel
+          composer install --no-ansi --no-interaction --no-progress --prefer-dist
+      - name: Run PHPUnit Tests
+        run: |
+          cd laravel
+          vendor/bin/phpunit
+
+  fastapi-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Dependencies
+        run: |
+          cd fastapi
+          pip install -r requirements.txt
+      - name: Run Pytest
+        run: |
+          cd fastapi
+          pytest
+
+  vue-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install Dependencies
+        run: |
+          cd vue
+          npm install
+      - name: Run Vitest
+        run: |
+          cd vue
+          npm run test
